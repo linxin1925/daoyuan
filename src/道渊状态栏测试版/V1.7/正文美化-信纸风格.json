@@ -1,0 +1,15 @@
+{
+  "id": "daoyuan-content-beautify-v1",
+  "scriptName": "道渊正文美化·信纸风格",
+  "disabled": false,
+  "findRegex": "<content>\\s*([\\s\\S]*?)\\s*<\\/content>",
+  "replaceString": "<div style=\"background-color:#1a181d;background-image:linear-gradient(180deg,rgba(26,24,29,0.97) 0%,rgba(31,38,50,0.97) 100%);border-top:1px solid rgba(107,90,58,0.45);border-right:1px solid rgba(107,90,58,0.45);border-bottom:1px solid rgba(107,90,58,0.45);border-left:3px solid rgba(216,193,136,0.75);border-radius:2px;padding:18px 22px 16px 22px;margin:8px 0;color:#ddd9c4;font-family:'DaoYuan Serif','Noto Serif SC','Songti SC','STSongti SC','SimSun',serif;font-size:0.95em;line-height:1.5;letter-spacing:0.03em;white-space:pre-line;box-shadow:inset 0 0 60px rgba(216,193,136,0.022),0 2px 16px rgba(0,0,0,0.4);\"><div style=\"height:1px;background:linear-gradient(90deg,transparent,rgba(216,193,136,0.3),rgba(216,193,136,0.15),transparent);margin-bottom:14px;\"></div>$1<div style=\"height:1px;background:linear-gradient(90deg,transparent,rgba(216,193,136,0.15),rgba(216,193,136,0.3),transparent);margin-top:14px;\"></div></div>",
+  "trimStrings": [],
+  "placement": [2],
+  "runOnEdit": true,
+  "markdownOnly": false,
+  "promptOnly": false,
+  "substituteRegex": 0,
+  "minDepth": null,
+  "maxDepth": null
+}

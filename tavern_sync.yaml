@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=https://testingcf.jsdelivr.net/gh/StageDog/tavern_sync/dist/schema/settings.zh.json
+
+# 在此填入 user 名称, 提示词中如果有这个名字则会被替换成 <user> 宏
+user名称: 青空黎
+
+# 在此填入新的"角色卡"、"世界书"或"预设"配置
+# 道渊世界书目前是酒馆导出的完整 JSON（src/道渊世界书/），未拆解为 tavern_sync 结构，故暂无配置。
+# 如需接入同步，参考 https://github.com/StageDog/tavern_sync 先 extract 再在此登记。
+配置: {}

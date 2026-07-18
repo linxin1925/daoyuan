@@ -1,0 +1,128 @@
+/* 《道渊》状态栏 — 修仙画风全局样式 */
+
+@font-face {
+  font-family: 'DaoYuan Serif';
+  src: local('Noto Serif SC'), local('Songti SC'), local('STSongti SC'), local('SimSun'), local('Source Han Serif SC');
+  font-display: swap;
+}
+
+:root {
+  /* surfaces — 玄墨 ink */
+  --c-bg: #0c0f14;
+  --c-bg-alt: #11151d;
+  --c-surface: #171c26;
+  --c-surface-alt: #1f2632;
+
+  /* primary identity — 鎏金 gold */
+  --c-primary: #d8c188;
+  --c-primary-dim: #8a7a4a;
+
+  /* accents — semantic */
+  --c-accent: #6fb39a; /* 青玉 jade — 生机/生命 */
+  --c-danger: #c4665b; /* 朱砂 cinnabar — 精血/危机 */
+  --c-warn: #d9a441; /* 琥珀 amber — 修为/警示 */
+  --c-luck: #a888d4; /* 紫气 purple — 神识/气运 */
+  --c-mind: #5fb3c4; /* 青冥 cyan — 道心 */
+
+  /* text */
+  --c-text: #ddd9c4;
+  --c-text-muted: #8a8676;
+  --c-text-dim: #5d5a4f;
+
+  /* lines */
+  --c-border: #2a2f3a;
+  --c-border-gold: rgba(216, 193, 136, 0.22);
+
+  /* glow */
+  --glow-gold: 0 0 8px rgba(216, 193, 136, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+body {
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: 'DaoYuan Serif', 'Noto Serif SC', 'Songti SC', 'STSongti SC', 'SimSun', serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  letter-spacing: 0.02em;
+}
+
+/* —— 窄屏（手机）适配：调大基础字号，让 em 单位的文字与触摸目标同步放大 —— */
+@media (max-width: 520px) {
+  body {
+    font-size: 15px;
+  }
+}
+
+#app {
+  width: 100%;
+}
+
+/* —— 装饰：星河墨韵底纹 —— */
+.ink-canvas {
+  background:
+    radial-gradient(ellipse 60% 40% at 20% 0%, rgba(168, 136, 212, 0.08), transparent 70%),
+    radial-gradient(ellipse 50% 50% at 85% 15%, rgba(95, 179, 196, 0.06), transparent 65%),
+    radial-gradient(ellipse 80% 60% at 50% 100%, rgba(216, 193, 136, 0.05), transparent 70%),
+    linear-gradient(180deg, var(--c-bg) 0%, var(--c-bg-alt) 100%);
+}
+
+/* —— 装饰：鎏金细线 —— */
+.gold-rule {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--c-border-gold), transparent);
+}
+
+/* —— 装饰：朱砂印 —— */
+.seal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  padding: 0.1em 0.55em;
+  border-radius: 3px;
+  font-size: 0.78em;
+  letter-spacing: 0.08em;
+  color: #f3e6d0;
+  background: linear-gradient(135deg, rgba(196, 102, 91, 0.85), rgba(170, 70, 60, 0.85));
+  border: 1px solid rgba(255, 220, 200, 0.25);
+  box-shadow: 0 0 6px rgba(196, 102, 91, 0.3);
+}
+
+/* —— 滚动条 —— */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--c-border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--c-primary-dim);
+}
+
+/* —— 入场过渡 —— */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.25s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}

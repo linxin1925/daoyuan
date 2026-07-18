@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>手机角色状态栏 · 预览</title>
+    <!--
+      独立预览入口: 用于在浏览器里直接看 src/手机角色状态栏 的视觉效果.
+      原理:
+        1. fetch() 拿到 dist/手机角色状态栏/index.html 的最终 HTML 字符串
+        2. 在 <head> 顶部插入"酒馆助手 mock 全局"的 <script>, 让 dist 里依赖的
+           getVariables / tavern_events / eventOn / 等 在脚本执行前就已就绪
+        3. 通过 iframe.srcdoc 整体加载, 让 mock 与 dist 在同一文档里运行
+
+      使用方式:
+        1. 先确保已经 pnpm build 或 pnpm watch 生成 dist/手机角色状态栏/index.html
+        2. 启动一个静态服务器, 例如:
+             cd /Users/zekrom/Documents/tavern_helper_template-main
+             python3 -m http.server 7799
+        3. 浏览器打开 http://127.0.0.1:7799/util/preview.html
+    -->
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei',
+          sans-serif;
+        background: linear-gradient(
+          135deg,
+          #1a1a2e 0%,
+          #16213e 50%,
+          #0f3460 100%
+        );
+        color: #fff;
+      }
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 22px;
+        background: rgba(0, 0, 0, 0.25);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .topbar h1 {
+        font-size: 15px;
+        margin: 0;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+      }
+      .topbar small {
+        opacity: 0.55;
+        font-size: 11px;
+      }
+      .stage {
+        display: flex;
+        justify-content: center;
+        padding: 24px 16px 60px;
+      }
+      .stage-inner {
+        width: 100%;
+        max-width: 420px;
+        aspect-ratio: 9 / 19;
+      }
+      .stage-inner iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+        background: transparent;
+      }
+      .err {
+        margin: 24px auto;
+        max-width: 600px;
+        padding: 16px;
+        background: rgba(255, 80, 80, 0.15);
+        border: 1px solid rgba(255, 80, 80, 0.4);
+        border-radius: 8px;
+        line-height: 1.6;
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <h1>手机角色状态栏 · 预览</h1>
+      <small>standalone preview · 模拟酒馆环境</small>
+    </div>
+
+    <div class="stage">
+      <div class="stage-inner">
+        <iframe id="preview"></iframe>
+      </div>
+    </div>
+
+    <div id="err" class="err" style="display: none"></div>
+
+    <!-- mock 全局, 准备给 srcdoc 注入 -->
+    <script id="mock-source" type="text/plain">
+      // ===== 酒馆助手全局 API mock =====
+      const MOCK_DATA = {
+        角色: {
+          姓名: '青空黎',
+          头像字符: '青空',
+          签名: '在校 · 文学社',
+          当前心情: '若有所思',
+          当前位置: '图书馆 · 临窗座位',
+          当前装扮: '深蓝水手服 + 白丝带',
+          好感度: 72,
+          最近想法: '今天他似乎也来了……要不要主动打个招呼呢？',
+        },
+        聊天记录: [
+          { 时间: '14:02', 内容: '你今天也来这里看书吗？', 来自: '角色' },
+          { 时间: '14:03', 内容: '嗯，刚好下课就过来了。', 来自: '我' },
+          {
+            时间: '14:05',
+            内容: '我把那本《人间失格》带来了，要一起看吗？',
+            来自: '角色',
+          },
+        ],
+      };
+
+      window.getVariables = () => MOCK_DATA;
+      window.replaceVariables = () => {};
+      window.insertOrAssignVariables = () => {};
+
+      window.tavern_events = new Proxy({}, { get: (_, k) => 'mock:' + String(k) });
+      window.iframe_events = new Proxy({}, { get: (_, k) => 'mock:iframe:' + String(k) });
+      window.eventOn = () => ({ stop: () => {} });
+      window.eventOnce = () => ({ stop: () => {} });
+      window.eventMakeFirst = () => ({ stop: () => {} });
+      window.eventMakeLast = () => ({ stop: () => {} });
+      window.eventRemoveListener = () => {};
+      window.eventEmit = () => {};
+
+      window.getCurrentMessageId = () => 0;
+      window.getLastMessageId = () => 0;
+      window.getChatMessages = () => [{ message: '', role: 'user', data: {} }];
+      window.setChatMessages = () => {};
+      window.createChatMessages = () => {};
+      window.getIframeName = () => 'preview';
+      window.getScriptId = () => 'preview';
+      window.getTavernHelperVersion = async () => '999.0.0';
+
+      window.waitGlobalInitialized = async () => {};
+      window.Mvu = {
+        getMvuData: () => ({ stat_data: MOCK_DATA }),
+        replaceMvuData: () => {},
+        parseMessage: async () => MOCK_DATA,
+        events: {},
+      };
+
+      window.toastr = new Proxy({}, {
+        get: () => (m, t) => console.info('[toastr]', t || '', m),
+      });
+
+      window.SillyTavern = {
+        getCurrentChatId: () => 'preview-chat',
+        getContext: () => ({ chat: [], name2: '青空黎' }),
+      };
+
+      window.TavernHelper = {
+        tavern_events: window.tavern_events,
+        iframe_events: window.iframe_events,
+      };
+    </script>
+
+    <!-- 第三方库脚本: 这些在 dist 中是通过 jsdelivr import-map 引入的, 我们也用同样地址 -->
+    <script id="vendor-source" type="text/plain">
+      // 同步加载 jquery / lodash 到全局, 以便 dist 中的 $ 和 _ 可用
+      // 这些库在 dist 中本是 webpack externals: var $ / var _, 所以必须存在于全局.
+    </script>
+
+    <script>
+      const errBox = document.getElementById('err');
+      function showErr(msg) {
+        errBox.style.display = 'block';
+        errBox.textContent = msg;
+      }
+
+      (async () => {
+        try {
+          const distHtml = await fetch(
+            '../dist/手机角色状态栏/index.html?t=' + Date.now(),
+          ).then(r => {
+            if (!r.ok) throw new Error('无法读取 dist 文件: ' + r.status);
+            return r.text();
+          });
+
+          const mockJs = document.getElementById('mock-source').textContent;
+
+          // 在 <head> 紧接 <head> 标签后插入 jQuery / lodash CDN, 然后是 mock 脚本
+          // (jquery 和 lodash 必须先于 dist 内联脚本执行, 因为 dist 里 var $/var _)
+          // dist 用 webpack externals 把 vue/jquery/lodash/yaml/toastr/zod 全部映射成全局变量,
+          // 因此必须先把这些库以全局形式加载进来. 顺序: 第三方库 → mock 全局 → dist 内联代码.
+          // 关键技巧:
+          //   - jquery / lodash / vue / toastr 都有 UMD 全局版本, 直接 <script src> 即可
+          //   - zod 4 / yaml 只有 ESM, 用静态 import 写在 module 里, 强制等待解析后再放行后面的 module
+          //   - dist 入口本身是 <script type="module">, 所以我们也只要保证我们这个 module 在它之前
+          //     完成首次执行(包括同步 import 的解析), 它就拿得到全局 z 与 YAML.
+          const injection = `
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+            <script src="https://testingcf.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"><\/script>
+            <script src="https://testingcf.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"><\/script>
+            <script src="https://testingcf.jsdelivr.net/npm/vue@3.5.34/dist/vue.global.prod.js"><\/script>
+            <script src="https://testingcf.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.js"><\/script>
+            <script type="module">
+              import * as zodMod from 'https://testingcf.jsdelivr.net/npm/zod@4.4.3/+esm';
+              import * as yamlMod from 'https://testingcf.jsdelivr.net/npm/yaml@2.8.4/+esm';
+              // dist 里 webpack 把 zod 整个 module 当外部依赖, 访问时是 mod.z.object(...),
+              // 所以全局 z 应当 = 整个 zod module namespace (它本身就含 .z 引用, 因此 z.z.object 也可用)
+              window.z = zodMod;
+              window.YAML = yamlMod.default ?? yamlMod;
+            <\/script>
+            <script>${mockJs}<\/script>
+          `;
+
+          // dist html 是 <head>...<\/head><body>...<\/body> 形式
+          const finalHtml = distHtml.replace(/<head>/i, '<head>' + injection);
+
+          const iframe = document.getElementById('preview');
+          iframe.srcdoc = finalHtml;
+        } catch (e) {
+          showErr('预览失败: ' + (e.message || e));
+        }
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,487 @@
+{
+  "mate": {
+    "type": "chatSheets",
+    "version": 1,
+    "updateConfigUiSentinel": -1,
+    "globalInjectionConfig": {
+      "readableEntryPlacement": {
+        "position": "before_char",
+        "depth": 2,
+        "order": 99981
+      },
+      "wrapperPlacement": {
+        "position": "before_char",
+        "depth": 2,
+        "order": 99980
+      }
+    }
+  },
+  "sheet_dCudvUnH": {
+    "uid": "sheet_dCudvUnH",
+    "name": "全局数据表",
+    "sourceData": {
+      "note": "记录主角当前所在地点及时间相关参数。此表有且仅有一行。\n- 列1: 主角当前所在地点 - 修仙世界的精确位置，按【大区·方位·势力·地点·微观】五层格式书写，例：「中央神州·南部·湮丹宗地界·杏临谷外围·紫灵米药田边青石小径」。\n- 列2: 当前时间 - 修真历法，格式必须严格遵守 YYYY-MM-DD HH:MM；本卡使用「元会历」纪年，年份请用四位数字（如 3726 写成 3726-12-23 16:00）。初始化时若剧情未给出明确时间，自行设定一个符合元会历背景的时间。\n- 列3: 上轮场景时间 - 上一轮交互结束时的时间，每轮推进时把当前时间转为上轮时间。\n- 列4: 经过的时间 - 文本描述（如「一炷香」「半个时辰」「三日」），符合修真用语习惯。",
+      "initNode": "插入一条记录主角赤羽初始时空状态：所在地点写当前剧情明确的位置；当前时间设置为元会历某具体时刻；上轮场景时间留空（NULL）；经过的时间写「初入」。",
+      "deleteNode": "禁止删除。",
+      "updateNode": "当主角离开当前区域时更新所在地点；每轮都必须更新时间（推进合理的时辰跨度）。\nSQL示例: UPDATE global_state SET current_location = '中央神州·南部·湮丹宗·杏临谷·紫灵米药田', prev_scene_time = cur_time, cur_time = '3726-12-23 16:30', elapsed_time = '半炷香' WHERE row_id = 1;",
+      "insertNode": "禁止操作。",
+      "ddl": "CREATE TABLE global_state ( -- 全局数据表\n  row_id INTEGER PRIMARY KEY, -- 行号\n  current_location TEXT NOT NULL, -- 主角当前所在地点\n  cur_time TEXT NOT NULL CHECK(cur_time GLOB '????-??-?? ??:??'), -- 当前时间\n  prev_scene_time TEXT CHECK(prev_scene_time IS NULL OR prev_scene_time GLOB '????-??-?? ??:??'), -- 上轮场景时间\n  elapsed_time TEXT -- 经过的时间\n);"
+    },
+    "content": [
+      [
+        "row_id",
+        "主角当前所在地点",
+        "当前时间",
+        "上轮场景时间",
+        "经过的时间"
+      ]
+    ],
+    "updateConfig": {
+      "uiSentinel": -1,
+      "contextDepth": -1,
+      "updateFrequency": -1,
+      "batchSize": -1,
+      "skipFloors": -1
+    },
+    "exportConfig": {
+      "enabled": false,
+      "splitByRow": false,
+      "entryName": "全局数据表",
+      "entryType": "constant",
+      "keywords": "",
+      "preventRecursion": true,
+      "injectionTemplate": "",
+      "extraIndexEnabled": false,
+      "extraIndexEntryName": "全局数据表-索引",
+      "extraIndexColumns": [],
+      "extraIndexColumnModes": {},
+      "extraIndexInjectionTemplate": "",
+      "entryPlacement": {
+        "position": "at_depth_as_system",
+        "depth": 2,
+        "order": 10000
+      },
+      "extraIndexPlacement": {
+        "position": "at_depth_as_system",
+        "depth": 2,
+        "order": 10010
+      },
+      "fixedEntryPlacement": {
+        "position": "before_char",
+        "depth": 2,
+        "order": 99981
+      },
+      "fixedIndexPlacement": {
+        "position": "before_char",
+        "depth": 2,
+        "order": 99980
+      }
+    },
+    "orderNo": 0
+  },
+  "sheet_DpKcVGqg": {
+    "uid": "sheet_DpKcVGqg",
+    "name": "主角信息表",
+    "sourceData": {
+      "note": "记录主角赤羽的修仙者档案。此表有且仅有一行（row_id=1）。\n- 列1 人物名称: 主角的道号（默认：赤羽）。\n- 列2 性别/年龄: 例：「男/外貌约二十」。修仙者实际年龄与外貌不必一致。\n- 列3 外貌特征: 客观描写主角的外貌；本卡默认设定：金瞳、银色长发、英俊阳刚。\n- 列4 身形: 主角的体态身形描写（对应 MVU 主角.身形），随炼体功法突破、特殊血脉觉醒或极度透支时更新体态变化，≥30字。\n- 列5 衣着: 主角当前穿戴（对应 MVU 主角.衣着），需写明材质与完整度；脱衣时描写裸体及性征，≥30字。\n- 列6 宗门: 主角归属（对应 MVU 主角.宗门），例：「散修」「湮丹宗·记名弟子」「明月宗·真传弟子」「无门无派」。本卡默认起步为「散修」。\n- 列7 气运: 主角已开启的气运名汇总（对应 MVU 主角.气运 的 keys），多项用「、」分隔；气运详情在「主角技能表」中。本卡默认：「真·草字剑诀、真·伴生帝兵、真·时间掌控者、真·诸天万界钓鱼」。\n- 列8 过往经历: 分层压缩记录主角的关键经历。\n  - 【浓缩记忆】：早期事件压缩为关键词链，用「·」分隔，例：「天品灵根·伴生帝兵·九阳神功入门·晏青引荐入湮丹宗·筑基中期突破」\n  - 【近期经历】：保留最近 2~3 件大事的简要描述，用「；」分隔\n  - 整体不超过 300 字。每轮新增事件先写入「近期经历」，旧事件逐步压缩移入「浓缩记忆」\n- 列9 最近经历: 概括最近一两轮发生的事件（约50字），每轮覆盖更新；用于状态栏快速浏览主角当前剧情阶段，与「过往经历」的长期记忆形成分工。\n- 列10 性格特点: 概括主角的核心性格，可包含修仙者特质（如：稳健内敛、急于求道、悟性极高等）。",
+      "initNode": "游戏初始化时，插入主角条目（row_id=1）。本卡默认值：道号「赤羽」、性别/年龄「男/外貌约二十」、外貌「金瞳、银色长发、英俊阳刚」、身形「挺拔修长，肩宽腰窄」、衣着「白色道袍，腰系玄铁腰带」、宗门「散修」、气运「真·草字剑诀、真·伴生帝兵、真·时间掌控者、真·诸天万界钓鱼」、过往经历「出生于玄天界，天品灵根，手握极道帝兵而生，修习九阳神功」、最近经历「初至湮丹宗杏临谷外围紫灵米药田」、性格特点「（按剧情起点补充）」。",
+      "deleteNode": "禁止删除。",
+      "updateNode": "「过往经历」分层压缩更新：新事件追加到「近期经历」尾部；当近期经历条目超过 3 条或总字数逼近 300 时，将最早一条压缩为关键词移入「浓缩记忆」。压缩示例：「获晏青引荐拜入湮丹宗」→「晏青引荐入湮丹宗」。「最近经历」每轮必须覆盖更新为最近一两轮的概要；「身形」随炼体突破/血脉觉醒/极度透支更新；「衣着」随换装/破损/脱衣更新；主角入宗/退宗/晋升时更新「宗门」；习得或失去气运时同步更新「气运」与「主角技能表」。\nSQL示例（分层压缩过往经历）: UPDATE protagonist_info SET past_experience = '【浓缩记忆】天品灵根·伴生帝兵·九阳神功入门·晏青引荐入湮丹宗·筑基中期突破\n【近期经历】万宝楼拍得陨铁剑胚寄拍中；南境钓鱼执法清剿三波魔修' WHERE row_id = 1;\nSQL示例（最近经历，每轮覆盖）: UPDATE protagonist_info SET recent_experience = '途经杏临谷药田，远观晏青晒太阳后转身离去' WHERE row_id = 1;\nSQL示例（宗门变更）: UPDATE protagonist_info SET sect = '湮丹宗·记名弟子' WHERE row_id = 1;",
+      "insertNode": "禁止操作。本表有且仅有一行。",
+      "ddl": "CREATE TABLE protagonist_info ( -- 主角信息表\n  row_id INTEGER PRIMARY KEY, -- 行号\n  char_name TEXT NOT NULL, -- 人物名称\n  gender_age TEXT, -- 性别/年龄\n  appearance TEXT, -- 外貌特征\n  body_type TEXT, -- 身形\n  clothing TEXT, -- 衣着\n  sect TEXT, -- 宗门\n  qiyun TEXT, -- 气运\n  past_experience TEXT, -- 过往经历\n  recent_experience TEXT, -- 最近经历\n  personality TEXT -- 性格特点\n);"
+    },
+    "content": [
+      [
+        "row_id",
+        "人物名称",
+        "性别/年龄",
+        "外貌特征",
+        "身形",
+        "衣着",
+        "宗门",
+        "气运",
+        "过往经历",
+        "最近经历",
+        "性格特点"
+      ]
+    ],
+    "updateConfig": {
+      "uiSentinel": -1,
+      "contextDepth": -1,
+      "updateFrequency": -1,
+      "batchSize": -1,
+      "skipFloors": -1
+    },
+    "exportConfig": {
+      "enabled": false,
+      "splitByRow": false,
+      "entryName": "主角信息",
+      "entryType": "constant",
+      "keywords": "",
+      "preventRecursion": true,
+      "injectionTemplate": "",
+      "extraIndexEnabled": false,
+      "extraIndexEntryName": "主角信息-索引",
+      "extraIndexColumns": [],
+      "extraIndexColumnModes": {},
+      "extraIndexInjectionTemplate": "",
+      "entryPlacement": {
+        "position": "at_depth_as_system",
+        "depth": 2,
+        "order": 10000
+      },
+      "extraIndexPlacement": {
+        "position": "at_depth_as_system",
+        "depth": 2,
+        "order": 10010
+      },
+      "fixedEntryPlacement": {
+        "position": "at_depth_as_system",
+        "depth": 2,
+        "order": 99990
+      },
+      "fixedIndexPlacement": {
+        "position": "at_depth_as_system",
+        "depth": 2,
+        "order": 99991
+      }
+    },
+    "orderNo": 1
+  },
+  "sheet_NcBlYRH5": {
+    "uid": "sheet_NcBlYRH5",
+    "name": "重要角色表",
+    "sourceData": {
+      "note": "记录所有关键修仙者NPC的详细信息和动态状态。\n- 列1: 姓名 - NPC的道号 / 本名。\n- 列2: 性别/年龄 - 修仙者的外貌年龄（实际年龄常远大于此），例：「女/约十八，实则三百二十」。\n- 列3: 境界 - NPC当前修仙境界（对应 MVU 人物.[NPC名].境界），例：「金丹初期」「筑基大圆满」「元婴中期」。随世界时间推进或遭遇机缘时更新。\n- 列4: 一句话介绍 - 不超过15字概括身份背景，例：「湮丹宗记名弟子」「散修剑修」「绝色榜第三 · 红蝶」。\n- 列5: 外貌特征 - 详细描述NPC的外貌、衣着、随身气场或法器；女性角色可含身姿描写，男性角色仅描写外貌与气质，不写身材。\n- 列6: 持有的重要物品 - NPC关键法宝/丹药/灵草/玉简等，多项用「；」分隔。\n- 列7: 是否离场 - 填「是」或「否」。判断该NPC此时是否能与主角直接互动。\n- 列8: 过往经历 - NPC背景与关键事件，分层压缩，不超过300字。\n    - 【浓缩记忆】：早期事件压缩为关键词链，用「·」分隔，保留境界变化、宗门变动、与主角的关键交集\n    - 【近期经历】：保留最近 2~3 次与主角交互的简要描述\n    - 新事件先写入「近期经历」，旧事件逐步压缩移入「浓缩记忆」",
+      "initNode": "游戏初始化时为当前在场或剧情已登场的修仙者NPC各插入一条记录。初始时已知NPC：晏青（男/约二十，金丹初期，湮丹宗宗主亲传，性格懒散）；红蝶（女/约十九，金丹大圆满，绝色榜成员，异火化形散修，初见时戴白色素面具，黑红长裙）；温月清（女/约二十，元婴初期，绝色榜成员，待登场）。",
+      "deleteNode": "禁止删除。",
+      "updateNode": "已有NPC的境界、关系、想法或经历变化时更新；过往经历分层压缩（新事件→近期经历，旧事件→浓缩记忆）；若NPC陨落需在姓名旁标注「（已陨落）」并将「是否离场」置为「是」；只是暂时离开场景的，也置「是」；重新出现时置「否」。\nSQL示例: UPDATE important_characters SET realm = '金丹中期', is_absent = '是', past_experience = '【浓缩记忆】湮丹宗宗主亲传·金丹初期·初见赤羽于杏临谷\n【近期经历】与赤羽同行南境；参与钓鱼执法清剿魔修' WHERE name = '晏青';",
+      "insertNode": "剧情中有未记录的修仙者登场时添加。注意：仅记录「重要」或「有名有姓」的NPC，路人无需入表。\nSQL示例（单行）: INSERT INTO important_characters (name, gender_age, realm, brief_intro, appearance, key_items, is_absent, past_experience) VALUES ('青衫修士', '男/约三十', '筑基后期', '湮丹宗外门执事', '青色长袍，腰悬储物袋', '储物袋一枚；下品灵石若干', '否', '负责杏临谷外围巡视。');\nSQL示例（多行批量）: INSERT INTO important_characters (name, gender_age, realm, brief_intro, appearance, key_items, is_absent, past_experience) VALUES ('青衫修士', '男/约三十', '筑基后期', '...', '...', '...', '否', '...'), ('白衣女修', '女/约二十', '金丹初期', '...', '...', '...', '否', '...');\n注意：批量插入时不要写 row_id 列，让 SQLite 自动递增。",
+      "ddl": "CREATE TABLE important_characters ( -- 重要角色表\n  row_id INTEGER PRIMARY KEY, -- 行号\n  name TEXT NOT NULL UNIQUE, -- 姓名\n  gender_age TEXT, -- 性别/年龄\n  realm TEXT, -- 境界\n  brief_intro TEXT, -- 一句话介绍\n  appearance TEXT, -- 外貌特征\n  key_items TEXT, -- 持有的重要物品\n  is_absent TEXT NOT NULL DEFAULT '否' CHECK(is_absent IN ('是', '否')), -- 是否离场\n  past_experience TEXT -- 过往经历\n);"
+    },
+    "content": [
+      [
+        "row_id",
+        "姓名",
+        "性别/年龄",
+        "境界",
+        "一句话介绍",
+        "外貌特征",
+        "持有的重要物品",
+        "是否离场",
+        "过往经历"
+      ]
+    ],
+    "updateConfig": {
+      "uiSentinel": -1,
+      "contextDepth": -1,
+      "updateFrequency": -1,
+      "batchSize": -1,
+      "skipFloors": -1
+    },
+    "exportConfig": {
+      "enabled": true,
+      "splitByRow": true,
+      "entryName": "重要人物表",
+      "entryType": "keyword",
+      "keywords": "姓名",
+      "preventRecursion": true,
+      "injectionTemplate": "",
+      "extraIndexEnabled": true,
+      "extraIndexEntryName": "重要人物表-索引",
+      "extraIndexColumns": [
+        "姓名",
+        "一句话介绍"
+      ],
+      "extraIndexColumnModes": {
+        "姓名": "both",
+        "一句话介绍": "index_only"
+      },
+      "extraIndexInjectionTemplate": "以下为已经登场过的修真人物：\n<已登场角色>\n$1\n</已登场角色>",
+      "entryPlacement": {
+        "position": "at_depth_as_system",
+        "depth": 10000,
+        "order": 10000
+      },
+      "extraIndexPlacement": {
+        "position": "at_depth_as_system",
+        "depth": 10000,
+        "order": 8000
+      },
+      "fixedEntryPlacement": {
+        "position": "at_depth_as_system",
+        "depth": 10000,
+        "order": 99983
+      },
+      "fixedIndexPlacement": {
+        "position": "at_depth_as_system",
+        "depth": 10000,
+        "order": 99984
+      }
+    },
+    "orderNo": 2
+  },
+  "sheet_lEARaBa8": {
+    "uid": "sheet_lEARaBa8",
+    "name": "主角技能表",
+    "sourceData": {
+      "note": "记录主角赤羽掌握的所有功法、剑诀、神通与气运（统称『技能』）。\n- 列1: 技能名称 - 功法 / 剑诀 / 神通 / 气运的完整名称。气运请保留「真·」前缀。\n- 列2: 技能类型 - 「主动」表示需消耗灵力/精血/神识主动施展（剑诀、神通、攻伐法术）；「被动」表示常驻效果（功法本身、伴生帝兵、时间掌控等气运被动）。\n- 列3: 等级/阶段 - 功法用「炼气期/筑基初期/筑基中期/筑基后期/金丹初期/…/大乘期」标注修炼阶段；气运用「初识/小成/大成/圆满」或剩余次数。\n- 列4: 效果描述 - 简述当前阶段下的具体效果、消耗、冷却、限制。注意区分「使用状态」（可用/未启用/压制中）与等级。",
+      "initNode": "游戏初始化时插入主角已掌握的全部初始技能：\n1. 九阳神功 / 被动 / 筑基初期 / 修炼至筑基初期，纯阳无极，灵力醇厚，恢复极快；\n2. 真·草字剑诀 / 主动 / 初识 / 一株草斩尽日月星辰，剑意煌煌无物不斩；\n3. 真·伴生帝兵 / 被动 / 圆满 / 出生时手握极道帝兵而生，起跑线在他人终点之后；\n4. 真·时间掌控者 / 主动 / 初识 / 可暂停时间或回溯时间长河，扼杀敌人于摇篮中；\n5. 真·诸天万界钓鱼 / 主动 / 初识 / 可于诸天万界中随机钓获奇遇、灵物或人物。",
+      "deleteNode": "功法因剧情被剥夺/封印/替换时删除（封印态可改用更新表达，仅彻底失去时才删除）。\nSQL示例: DELETE FROM protagonist_skills WHERE skill_name = '被废除的旧功法';",
+      "updateNode": "技能突破阶段、悟性提升、气运消耗导致状态变化时更新等级或效果描述。\nSQL示例: UPDATE protagonist_skills SET skill_level = '金丹初期', effect_desc = '已贯通经脉，可凝聚一道煌煌剑意…' WHERE skill_name = '真·草字剑诀';",
+      "insertNode": "主角悟到新功法、习得新剑诀、开启新气运时添加。\nSQL示例（单行）: INSERT INTO protagonist_skills (skill_name, skill_type, skill_level, effect_desc) VALUES ('凌虚踏步', '主动', '初识', '踏空而行，可于短距离内瞬移。');\nSQL示例（多行批量）: INSERT INTO protagonist_skills (skill_name, skill_type, skill_level, effect_desc) VALUES ('凌虚踏步', '主动', '初识', '...'), ('御剑诀', '主动', '初识', '...'), ('清心咒', '被动', '小成', '...');\n注意：批量插入时不要写 row_id 列，让 SQLite 自动递增。",
+      "ddl": "CREATE TABLE protagonist_skills ( -- 主角技能表\n  row_id INTEGER PRIMARY KEY, -- 行号\n  skill_name TEXT NOT NULL UNIQUE, -- 技能名称\n  skill_type TEXT NOT NULL CHECK(skill_type IN ('被动', '主动')), -- 技能类型\n  skill_level TEXT, -- 等级/阶段\n  effect_desc TEXT -- 效果描述\n);"
+    },
+    "content": [
+      [
+        "row_id",
+        "技能名称",
+        "技能类型",
+        "等级/阶段",
+        "效果描述"
+      ]
+    ],
+    "updateConfig": {
+      "uiSentinel": -1,
+      "contextDepth": -1,
+      "updateFrequency": -1,
+      "batchSize": -1,
+      "skipFloors": -1
+    },
+    "exportConfig": {
+      "enabled": false,
+      "splitByRow": false,
+      "entryName": "主角功法气运表",
+      "entryType": "constant",
+      "keywords": "",
+      "preventRecursion": true,
+      "injectionTemplate": "",
+      "extraIndexEnabled": false,
+      "extraIndexEntryName": "主角功法气运表-索引",
+      "extraIndexColumns": [],
+      "extraIndexColumnModes": {},
+      "extraIndexInjectionTemplate": "",
+      "entryPlacement": {
+        "position": "at_depth_as_system",
+        "depth": 2,
+        "order": 10000
+      },
+      "extraIndexPlacement": {
+        "position": "at_depth_as_system",
+        "depth": 2,
+        "order": 10010
+      },
+      "fixedEntryPlacement": {
+        "position": "at_depth_as_system",
+        "depth": 2,
+        "order": 99990
+      },
+      "fixedIndexPlacement": {
+        "position": "at_depth_as_system",
+        "depth": 2,
+        "order": 99991
+      }
+    },
+    "orderNo": 3
+  },
+  "sheet_in05z9vz": {
+    "uid": "sheet_in05z9vz",
+    "name": "背包物品表",
+    "sourceData": {
+      "note": "记录主角储物袋中持有的所有物品。\n- 列1: 物品名称 - 修真物品的完整名称（含品级前缀），例：「下品灵石」「淬体丹·三品」「玄铁飞剑」「青木玉简」。\n- 列2: 数量 - 当前持有数量；为 0 必须删除整行，禁止留 0。\n- 列3: 描述/效果 - 一句话说明用途/效果/品阶；尽量精炼。\n- 列4: 类别 - 必须从下列分类中选一项：『灵石/丹药/灵草/法器/法宝/符箓/玉简/材料/杂物』。\n- 列5: 物品当前状态 - 记录物品当前所在位置或归属，例：「主角储物袋中」「已赠予晏青」「寄拍于万宝楼」「待移交苏清雪」「战斗中掉落未拾取」「托管于宗门库房」。默认新增物品状态为「主角储物袋中」。",
+      "initNode": "游戏初始化时根据剧情设定的入境状况添加初始物品（一般散修穿越起手只会有少量下品灵石、若干随身衣物、可能携带一两件简单法器）。初始空仓也可接受，无需强行填充。",
+      "deleteNode": "物品被完全消耗、丢弃、损毁或赠出时删除整行；数量降为 0 或更低时也必须删除。\nSQL示例(单项): DELETE FROM inventory WHERE item_name = '已耗尽的丹药';\nSQL示例(批量): DELETE FROM inventory WHERE quantity <= 0;",
+      "updateNode": "已有物品数量增减、描述改变或状态变化时更新。\nSQL示例(数量): UPDATE inventory SET quantity = quantity + 10 WHERE item_name = '下品灵石';\nSQL示例(损坏): UPDATE inventory SET quantity = quantity - 1, description = '已损毁，灵性大减' WHERE item_name = '青锋剑';\nSQL示例(状态): UPDATE inventory SET current_status = '寄拍于万宝楼，三日后流拍则退回' WHERE item_name = '陨铁剑胚';",
+      "insertNode": "主角获得储物袋中未记录的新物品时添加，默认状态为「主角储物袋中」。\nSQL示例（单行）: INSERT INTO inventory (item_name, quantity, description, category, current_status) VALUES ('紫灵米', 3, '湮丹宗特产灵米，可炼丹亦可食用恢复灵力', '灵草', '主角储物袋中');\nSQL示例（多行批量插入）: INSERT INTO inventory (item_name, quantity, description, category, current_status) VALUES ('紫灵米', 3, '...', '灵草', '主角储物袋中'), ('下品灵石', 50, '...', '灵石', '主角储物袋中'), ('青锋剑', 1, '...', '法器', '主角储物袋中');\n注意：批量插入时不要写 row_id 列，让 SQLite 自动递增；如果写 row_id，必须每行手动 +1 +2 +3 递增。",
+      "ddl": "CREATE TABLE inventory ( -- 背包物品表\n  row_id INTEGER PRIMARY KEY, -- 行号\n  item_name TEXT NOT NULL UNIQUE, -- 物品名称\n  quantity INTEGER NOT NULL DEFAULT 1 CHECK(quantity > 0), -- 数量\n  description TEXT, -- 描述/效果\n  category TEXT, -- 类别\n  current_status TEXT NOT NULL DEFAULT '主角储物袋中' -- 物品当前状态\n);"
+    },
+    "content": [
+      [
+        "row_id",
+        "物品名称",
+        "数量",
+        "描述/效果",
+        "类别",
+        "物品当前状态"
+      ]
+    ],
+    "updateConfig": {
+      "uiSentinel": -1,
+      "contextDepth": -1,
+      "updateFrequency": -1,
+      "batchSize": -1,
+      "skipFloors": -1
+    },
+    "exportConfig": {
+      "enabled": false,
+      "splitByRow": false,
+      "entryName": "储物袋",
+      "entryType": "constant",
+      "keywords": "",
+      "preventRecursion": true,
+      "injectionTemplate": "",
+      "extraIndexEnabled": false,
+      "extraIndexEntryName": "储物袋-索引",
+      "extraIndexColumns": [],
+      "extraIndexColumnModes": {},
+      "extraIndexInjectionTemplate": "",
+      "entryPlacement": {
+        "position": "at_depth_as_system",
+        "depth": 2,
+        "order": 10000
+      },
+      "extraIndexPlacement": {
+        "position": "at_depth_as_system",
+        "depth": 2,
+        "order": 10010
+      },
+      "fixedEntryPlacement": {
+        "position": "at_depth_as_system",
+        "depth": 2,
+        "order": 99990
+      },
+      "fixedIndexPlacement": {
+        "position": "at_depth_as_system",
+        "depth": 2,
+        "order": 99991
+      }
+    },
+    "orderNo": 4
+  },
+  "sheet_etak47Ve": {
+    "uid": "sheet_etak47Ve",
+    "name": "任务与事件表",
+    "sourceData": {
+      "note": "记录主角当前正在进行或已触发但未完成的机遇/任务/事件。\n- 列1: 任务名称 - 简洁的事件名，例：「杏临谷初遇」「南梁紫灵米涨价」「蓬莱仙岛将启传闻」。\n- 列2: 任务类型 - 「主线任务」（牵涉主角境界突破、宗门归属、命格转折）或「支线任务」（机缘、奇遇、零散委托）。\n- 列3: 发布者 - 谁触发或委托了此事；如系剧情自然演变，写「世界自演」。\n- 列4: 详细描述 - 任务的目标、要求、关键 NPC、相关物品。\n- 列5: 当前进度 - 文字描述完成度，例：「刚遇见晏青未交谈」「已采集紫灵米 3/10」。\n- 列6: 任务时限 - 修真历法时限（如「三日内」「下次大潮前」），或写「无时限」。\n- 列7: 奖励 - 完成后可得（灵石、丹药、功法、声望、机缘等）。\n- 列8: 惩罚 - 失败后果（声望损失、宗门追责、机缘断绝等）。",
+      "initNode": "游戏初始化时根据剧情已触发的机遇添加初始任务。本卡初始已知机遇：「杏临谷初遇」（支线，未交谈状态，机缘=与晏青建立联系）。",
+      "deleteNode": "任务完成、失败、过期、被主动放弃时删除。\nSQL示例: DELETE FROM quests_events WHERE quest_name = '杏临谷初遇';",
+      "updateNode": "任务进度推进、时限缩短、奖惩调整时更新。\nSQL示例: UPDATE quests_events SET current_progress = '已与晏青交谈三言两语', detail_desc = '深入了解湮丹宗内情' WHERE quest_name = '杏临谷初遇';",
+      "insertNode": "主角触发或接取新的机遇/任务时添加。\nSQL示例（单行）: INSERT INTO quests_events (quest_name, quest_type, issuer, detail_desc, current_progress, time_limit, reward, penalty) VALUES ('探寻蓬莱仙岛', '主线任务', '世界自演', '蓬莱仙岛即将开启，岛上藏有上古仙缘', '尚未启程', '一月之内', '上古遗宝 + 仙岛传承', '错过下次开启需百年');\nSQL示例（多行批量）: INSERT INTO quests_events (quest_name, quest_type, issuer, ...) VALUES ('探寻蓬莱仙岛', '主线任务', '世界自演', ...), ('采集紫灵米', '支线任务', '湮丹宗', ...);\n注意：批量插入时不要写 row_id 列，让 SQLite 自动递增。",
+      "ddl": "CREATE TABLE quests_events ( -- 任务与事件表\n  row_id INTEGER PRIMARY KEY, -- 行号\n  quest_name TEXT NOT NULL UNIQUE, -- 任务名称\n  quest_type TEXT NOT NULL CHECK(quest_type IN ('主线任务', '支线任务')), -- 任务类型\n  issuer TEXT, -- 发布者\n  detail_desc TEXT, -- 详细描述\n  current_progress TEXT, -- 当前进度\n  time_limit TEXT, -- 任务时限\n  reward TEXT, -- 奖励\n  penalty TEXT -- 惩罚\n);"
+    },
+    "content": [
+      [
+        "row_id",
+        "任务名称",
+        "任务类型",
+        "发布者",
+        "详细描述",
+        "当前进度",
+        "任务时限",
+        "奖励",
+        "惩罚"
+      ]
+    ],
+    "updateConfig": {
+      "uiSentinel": -1,
+      "contextDepth": -1,
+      "updateFrequency": -1,
+      "batchSize": -1,
+      "skipFloors": -1
+    },
+    "exportConfig": {
+      "enabled": false,
+      "splitByRow": false,
+      "entryName": "机遇任务表",
+      "entryType": "constant",
+      "keywords": "",
+      "preventRecursion": true,
+      "injectionTemplate": "",
+      "extraIndexEnabled": false,
+      "extraIndexEntryName": "机遇任务表-索引",
+      "extraIndexColumns": [],
+      "extraIndexColumnModes": {},
+      "extraIndexInjectionTemplate": "",
+      "entryPlacement": {
+        "position": "at_depth_as_system",
+        "depth": 2,
+        "order": 10000
+      },
+      "extraIndexPlacement": {
+        "position": "at_depth_as_system",
+        "depth": 2,
+        "order": 10010
+      },
+      "fixedEntryPlacement": {
+        "position": "at_depth_as_system",
+        "depth": 2,
+        "order": 99990
+      },
+      "fixedIndexPlacement": {
+        "position": "at_depth_as_system",
+        "depth": 2,
+        "order": 99991
+      }
+    },
+    "orderNo": 5
+  },
+  "sheet_3NoMc1wI": {
+    "uid": "sheet_3NoMc1wI",
+    "name": "纪要表",
+    "sourceData": {
+      "note": "轮次日志，每轮交互后必须立即插入一条新记录。这是长期记忆的核心。\n- 列1: 时间跨度 - 本轮事件发生的精确时间范围（元会历），格式严格为 YYYY-MM-DD HH:MM ~ YYYY-MM-DD HH:MM。\n- 列2: 地点 - 本轮主要发生的地点，按「大区·势力·具体场景」从大到小描述。\n- 列3: 纪要 - 以第三方仙史官视角客观记录本轮事件，不少于300字；不得加入推测、情绪化语言、负面解读或主观判断；不得补充未在正文中出现的情节；结尾禁止总结或升华。\n- 列4: 概要 - 30字以内一句话概括纪要内容。\n- 列5: 编码索引 - 格式严格为 AMXXXX，XXXX 从 0001 递增；本卡使用 AM 前缀（『暗码』），与默认一致。",
+      "initNode": "故事初始化时插入一条 AM0001 记录主角入场的初始剧情（赤羽穿越至玄天界，初到湮丹宗杏临谷外围紫灵米药田，遇见懒散的晏青）。",
+      "deleteNode": "禁止删除。",
+      "updateNode": "禁止操作。已有纪要为历史快照，不得修改。",
+      "insertNode": "每轮交互结束后插入一条新记录，编码递增。code_index 必须手动指定为 AM 前缀的 4 位编号（不能省略），row_id 列省略让 SQLite 自动递增。\nSQL示例: INSERT INTO chronicle (time_span, location, chronicle_text, summary, code_index) VALUES ('3726-12-23 16:00 ~ 3726-12-23 16:30', '湮丹宗·杏临谷外围·紫灵米药田', '本轮纪要...（不少于300字客观描写）', '赤羽路过药田，远观晏青晒太阳后转身离去', 'AM0002');\n注意：chronicle 表通常每轮只插入一条，不会批量插入；如确实需要批量，row_id 省略，但 code_index 必须每条手动指定不同编号。",
+      "ddl": "CREATE TABLE chronicle ( -- 纪要表\n  row_id INTEGER PRIMARY KEY, -- 行号\n  time_span TEXT NOT NULL CHECK(time_span GLOB '????-??-?? ??:?? ~ ????-??-?? ??:??'), -- 时间跨度\n  location TEXT NOT NULL, -- 地点\n  chronicle_text TEXT NOT NULL, -- 纪要\n  summary TEXT, -- 概览\n  code_index TEXT NOT NULL UNIQUE CHECK(code_index GLOB 'AM[0-9][0-9][0-9][0-9]') -- 编码索引\n);"
+    },
+    "content": [
+      [
+        "row_id",
+        "时间跨度",
+        "地点",
+        "纪要",
+        "概览",
+        "编码索引"
+      ]
+    ],
+    "updateConfig": {
+      "uiSentinel": -1,
+      "contextDepth": -1,
+      "updateFrequency": -1,
+      "batchSize": -1,
+      "skipFloors": -1
+    },
+    "exportConfig": {
+      "enabled": true,
+      "splitByRow": true,
+      "entryName": "纪要",
+      "entryType": "keyword",
+      "keywords": "编码索引",
+      "preventRecursion": true,
+      "injectionTemplate": "<记忆回溯>\n$1\n</记忆回溯>",
+      "extraIndexEnabled": true,
+      "extraIndexEntryName": "纪要索引",
+      "extraIndexColumns": [
+        "概览",
+        "编码索引"
+      ],
+      "extraIndexColumnModes": {
+        "概览": "index_only",
+        "编码索引": "both"
+      },
+      "extraIndexInjectionTemplate": "<已发生的事件概览>\n$1\n</已发生的事件概览>",
+      "entryPlacement": {
+        "position": "at_depth_as_system",
+        "depth": 999,
+        "order": 10000
+      },
+      "extraIndexPlacement": {
+        "position": "at_depth_as_system",
+        "depth": 1000,
+        "order": 10010
+      },
+      "fixedEntryPlacement": {
+        "position": "at_depth_as_system",
+        "depth": 9999,
+        "order": 99987
+      },
+      "fixedIndexPlacement": {
+        "position": "at_depth_as_system",
+        "depth": 9999,
+        "order": 99988
+      }
+    },
+    "orderNo": 6
+  }}
